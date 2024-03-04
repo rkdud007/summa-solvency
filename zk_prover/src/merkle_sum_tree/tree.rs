@@ -46,7 +46,12 @@ pub trait Tree<const N_CURRENCIES: usize, const N_BYTES: usize> {
 
         // for each balance in the left and right child, add them together and store in preimage
         for (i, balance) in preimage.iter_mut().enumerate().take(N_CURRENCIES) {
-            *balance = left_child.balances[i] + right_child.balances[i];
+            // Compare left and right child balances and store the maximum
+            if left_child.balances[i] > right_child.balances[i] {
+                *balance = left_child.balances[i];
+            } else {
+                *balance = right_child.balances[i];
+            }
         }
 
         // Add left and right child hashes to preimage
@@ -101,9 +106,41 @@ pub trait Tree<const N_CURRENCIES: usize, const N_BYTES: usize> {
         let mut sibling_middle_node_hash_preimages = Vec::with_capacity(depth - 1);
 
         let sibling_leaf_index = if index % 2 == 0 { index + 1 } else { index - 1 };
-
-        let sibling_leaf_node_hash_preimage: [Fp; N_CURRENCIES + 1] =
+        let original_sibling_leaf_node_hash_preimage: [Fp; N_CURRENCIES + 1] =
             self.get_leaf_node_hash_preimage(sibling_leaf_index)?;
+
+        let current_leaf_node_hash_preimage: [Fp; N_CURRENCIES + 1] =
+            self.get_leaf_node_hash_preimage(index)?;
+
+        let parent_index = index / 2;
+        // get maximum value
+        let parent_middle_node_hash_preimage: [Fp; N_CURRENCIES + 2] =
+            self.get_middle_node_hash_preimage(1, parent_index)?;
+
+        // original sibling leaf node - parent middle node = sibling leaf node
+        let mut sibling_faked_leaf_node_hash_preimage: [Fp; N_CURRENCIES + 1] =
+            [Fp::zero(); N_CURRENCIES + 1];
+
+        for (i, balance) in sibling_faked_leaf_node_hash_preimage
+            .iter_mut()
+            .enumerate()
+            .take(N_CURRENCIES + 1)
+        {
+            if i != 0 {
+                // fake sibling's balance into maximum value - current leaf node's balance
+                *balance =
+                    parent_middle_node_hash_preimage[i - 1] - current_leaf_node_hash_preimage[i];
+            } else if i == 0 {
+                // get same sibling's username
+                *balance = original_sibling_leaf_node_hash_preimage[i];
+            }
+        }
+
+        println!(
+            "sibling_faked_leaf_node_hash_preimage: {:?}",
+            sibling_faked_leaf_node_hash_preimage
+        );
+
         let mut path_indices = vec![Fp::zero(); depth];
         let mut current_index = index;
 
@@ -112,10 +149,41 @@ pub trait Tree<const N_CURRENCIES: usize, const N_BYTES: usize> {
             let sibling_index = current_index - position + (1 - position);
 
             if sibling_index < nodes[level].len() && level != 0 {
+                // Fetch hash preimage for current leaf node
+                let current_middle_node_hash_preimage =
+                    self.get_middle_node_hash_preimage(level, current_index)?;
+
                 // Fetch hash preimage for sibling middle nodes
-                let sibling_node_preimage =
+                let original_sibling_node_preimage =
                     self.get_middle_node_hash_preimage(level, sibling_index)?;
-                sibling_middle_node_hash_preimages.push(sibling_node_preimage);
+
+                let parent_index = current_index / 2;
+                let parent_middle_node_hash_preimage =
+                    self.get_middle_node_hash_preimage(level + 1, parent_index)?;
+
+                // parent middle node - current middle node = faked sibling middle node
+                let mut faked_sibling_node_preimage: [Fp; N_CURRENCIES + 2] =
+                    [Fp::zero(); N_CURRENCIES + 2];
+                for (i, balance) in faked_sibling_node_preimage
+                    .iter_mut()
+                    .enumerate()
+                    .take(N_CURRENCIES + 2)
+                {
+                    if i <= N_CURRENCIES {
+                        // fake sibling's balance into maximum value - current leaf node's balance
+                        *balance = parent_middle_node_hash_preimage[i]
+                            - current_middle_node_hash_preimage[i];
+                    } else if i == N_CURRENCIES + 1 || i == N_CURRENCIES + 2 {
+                        // get same sibling's username
+                        *balance = original_sibling_node_preimage[i];
+                    }
+                }
+                println!(
+                    "faked_sibling_node_preimage: {:?}",
+                    faked_sibling_node_preimage
+                );
+
+                sibling_middle_node_hash_preimages.push(faked_sibling_node_preimage);
             }
 
             path_indices[level] = Fp::from(position as u64);
@@ -127,7 +195,7 @@ pub trait Tree<const N_CURRENCIES: usize, const N_BYTES: usize> {
         Ok(MerkleProof {
             entry,
             root: root.clone(),
-            sibling_leaf_node_hash_preimage,
+            sibling_leaf_node_hash_preimage: sibling_faked_leaf_node_hash_preimage,
             sibling_middle_node_hash_preimages,
             path_indices,
         })
@@ -179,6 +247,9 @@ pub trait Tree<const N_CURRENCIES: usize, const N_BYTES: usize> {
                 node = Node::middle_node_from_preimage(&hash_preimage);
             }
         }
+
+        println!("{}", proof.root.balances == node.balances);
+        println!("{}", proof.root.hash == node.hash);
 
         proof.root.hash == node.hash && proof.root.balances == node.balances
     }

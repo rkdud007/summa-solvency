@@ -14,7 +14,7 @@ const N_BYTES: usize = 8;
 fn main() {
     let merkle_sum_tree =
         MerkleSumTree::<N_CURRENCIES, N_BYTES>::from_csv("../csv/entry_16.csv").unwrap();
-
+    println!("{:?}", merkle_sum_tree);
     let root = merkle_sum_tree.root();
 
     // The commitment to be published on-chain is made of (root_hash, root_balances)
