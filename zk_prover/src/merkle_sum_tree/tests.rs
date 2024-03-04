@@ -13,17 +13,18 @@ mod test {
     fn test_mst() {
         // create new merkle tree
         let merkle_tree =
-            MerkleSumTree::<N_CURRENCIES, N_BYTES>::from_csv("../csv/entry_16.csv").unwrap();
-
+            MerkleSumTree::<N_CURRENCIES, N_BYTES>::from_csv("../csv/entry_4.csv").unwrap();
+        println!("merkle_tree: {:?}", merkle_tree);
         // get root
         let root = merkle_tree.root();
+        println!("Root hash: {:?}", root.balances);
 
         // expect root hash to be different than 0
         assert!(root.hash != 0.into());
         // expect balance to match the sum of all entries
-        assert!(root.balances == [556862.into(), 556862.into()]);
-        // expect depth to be 4
-        assert!(*merkle_tree.depth() == 4_usize);
+        assert!(root.balances == [67823.into(), 55683.into()]);
+        // expect depth to be 2
+        assert!(*merkle_tree.depth() == 2_usize);
 
         // get proof for entry 0
         let proof = merkle_tree.generate_proof(0).unwrap();
