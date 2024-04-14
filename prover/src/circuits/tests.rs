@@ -540,6 +540,7 @@ mod test {
                         offset: 0
                     }
                 },
+                // !! Now even user 2 is out of range, permutation error doesn't show it
                 VerifyFailure::Permutation {
                     column: (Any::advice(), 10).into(),
                     location: FailureLocation::InRegion {
