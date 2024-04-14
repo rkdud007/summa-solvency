@@ -1411,6 +1411,7 @@ dependencies = [
 [[package]]
 name = "halo2_proofs"
 version = "0.2.0"
+source = "git+https://github.com/rkdud007/halo2?branch=permute-overflow-poc#447fdb2014fdcfed4b1bd8be08458a4fcbeb4061"
 dependencies = [
  "blake2b_simd",
  "ff",
@@ -1426,6 +1427,7 @@ dependencies = [
 [[package]]
 name = "halo2_solidity_verifier"
 version = "0.1.0"
+source = "git+https://github.com/rkdud007/halo2-solidity-verifier?branch=permute-overflow-poc#50d378043f27c0c29a6a2d4a0369a180c9575c02"
 dependencies = [
  "askama",
  "blake2b_simd",

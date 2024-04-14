@@ -7,12 +7,12 @@ edition = "2021"
 
 [dependencies]
 summa-solvency = { path = "../prover" }
-halo2_proofs = { path = "../../halo2-fork/halo2_proofs" }
+halo2_proofs = { git = "https://github.com/rkdud007/halo2", branch = "permute-overflow-poc" }
 csv = "1.2.2"
 futures = "0.3.28"
 num-bigint = "0.4.3"
 serde = { version = "1.0.166", features = ["derive"] }
-halo2_solidity_verifier = { path = "../../halo2-solidity-verifier", version = "0.1.0", features = [
+halo2_solidity_verifier = { git = "https://github.com/rkdud007/halo2-solidity-verifier", branch = "permute-overflow-poc", version = "0.1.0", features = [
     "evm",
 ] }
 ethers = { version = "2.0.7", default-features = false, features = [

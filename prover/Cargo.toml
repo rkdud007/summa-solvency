@@ -12,7 +12,7 @@ no_range_check = []
 
 
 [dependencies]
-halo2_proofs = { path = "../../halo2-fork/halo2_proofs" }
+halo2_proofs = { git = "https://github.com/rkdud007/halo2", branch = "permute-overflow-poc" }
 plotters = { version = "0.3.4", optional = true }
 rand = "0.8"
 ark-std = { version = "0.3.0", features = ["print-trace"] }
@@ -30,7 +30,7 @@ ethers = { version = "2.0.7", default-features = false, features = [
 regex-simple = { version = "1", package = "regex" }
 num-traits = "0.2.16"
 rayon = "1.8.0"
-halo2_solidity_verifier = { path = "../../halo2-solidity-verifier", version = "0.1.0", features = [
+halo2_solidity_verifier = { git = "https://github.com/rkdud007/halo2-solidity-verifier", branch = "permute-overflow-poc", version = "0.1.0", features = [
     "evm",
 ] }
 
