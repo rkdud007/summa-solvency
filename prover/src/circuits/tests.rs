@@ -435,8 +435,88 @@ mod test {
 
     // Building a proof using as input a csv file with an entry that is not in range [0, 2^64 - 1] should fail the range check constraint on the leaf balance
     #[test]
-    fn test_balance_not_in_range() {
-        let path = "../csv/entry_16_overflow.csv";
+    fn test_balance_not_in_range_case_1() {
+        // Case 1: Only one balance of user is out of range
+        let path = "../csv/entry_16_overflow_case_1.csv";
+
+        let mut entries: Vec<Entry<N_CURRENCIES>> = vec![Entry::init_empty(); N_USERS];
+        let mut cryptos = vec![Cryptocurrency::init_empty(); N_CURRENCIES];
+        parse_csv_to_entries::<&str, N_CURRENCIES>(path, &mut entries, &mut cryptos).unwrap();
+
+        let circuit = UnivariateGrandSum::<
+            N_USERS,
+            N_CURRENCIES,
+            UnivariateGrandSumConfig<N_CURRENCIES, N_USERS>,
+        >::init(entries.to_vec());
+
+        let invalid_prover = MockProver::run(K, &circuit, vec![vec![Fp::zero()]]).unwrap();
+
+        assert_eq!(
+            invalid_prover.verify(),
+            Err(vec![
+                // !! This is a false positive, the balance is in range
+                VerifyFailure::Permutation {
+                    column: (Any::advice(), 6).into(),
+                    location: FailureLocation::InRegion {
+                        region: (6, "Perform range check on balance 0 of user 2").into(),
+                        offset: 0
+                    }
+                },
+                VerifyFailure::Permutation {
+                    column: (Any::advice(), 10).into(),
+                    location: FailureLocation::InRegion {
+                        region: (5, "Perform range check on balance 1 of user 1").into(),
+                        offset: 0
+                    }
+                },
+            ])
+        );
+    }
+
+    #[test]
+    fn test_balance_not_in_range_case_2() {
+        // Case 2: All balances of one user are out of range
+        let path = "../csv/entry_16_overflow_case_2.csv";
+
+        let mut entries: Vec<Entry<N_CURRENCIES>> = vec![Entry::init_empty(); N_USERS];
+        let mut cryptos = vec![Cryptocurrency::init_empty(); N_CURRENCIES];
+        parse_csv_to_entries::<&str, N_CURRENCIES>(path, &mut entries, &mut cryptos).unwrap();
+
+        let circuit = UnivariateGrandSum::<
+            N_USERS,
+            N_CURRENCIES,
+            UnivariateGrandSumConfig<N_CURRENCIES, N_USERS>,
+        >::init(entries.to_vec());
+
+        let invalid_prover = MockProver::run(K, &circuit, vec![vec![Fp::zero()]]).unwrap();
+
+        assert_eq!(
+            invalid_prover.verify(),
+            Err(vec![
+                VerifyFailure::Permutation {
+                    column: (Any::advice(), 6).into(),
+                    location: FailureLocation::InRegion {
+                        region: (4, "Perform range check on balance 0 of user 1").into(),
+                        offset: 0
+                    }
+                },
+                // !! This is a false positive, the balance is in range
+                // !! Instead balance 1 of user 1 is out of range
+                VerifyFailure::Permutation {
+                    column: (Any::advice(), 6).into(),
+                    location: FailureLocation::InRegion {
+                        region: (6, "Perform range check on balance 0 of user 2").into(),
+                        offset: 0
+                    }
+                },
+            ])
+        );
+    }
+
+    #[test]
+    fn test_balance_not_in_range_case_3() {
+        // Case 3: sequencial balance of users are out of range
+        let path = "../csv/entry_16_overflow_case_3.csv";
 
         let mut entries: Vec<Entry<N_CURRENCIES>> = vec![Entry::init_empty(); N_USERS];
         let mut cryptos = vec![Cryptocurrency::init_empty(); N_CURRENCIES];
@@ -450,39 +530,25 @@ mod test {
 
         let invalid_prover = MockProver::run(K, &circuit, vec![vec![Fp::zero()]]).unwrap();
         println!("{:?}", invalid_prover.verify());
-        // assert_eq!(
-        //     invalid_prover.verify(),
-        //     Err(vec![
-        //         VerifyFailure::Permutation {
-        //             column: (Any::advice(), 6).into(),
-        //             location: FailureLocation::InRegion {
-        //                 region: (2, "Perform range check on balance 0 of user 0").into(),
-        //                 offset: 0
-        //             }
-        //         },
-        //         VerifyFailure::Permutation {
-        //             column: (Any::advice(), 6).into(),
-        //             location: FailureLocation::InRegion {
-        //                 region: (6, "Perform range check on balance 0 of user 2").into(),
-        //                 offset: 0
-        //             }
-        //         },
-        //         VerifyFailure::Permutation {
-        //             column: (Any::advice(), 10).into(),
-        //             location: FailureLocation::InRegion {
-        //                 region: (3, "Perform range check on balance 1 of user 0").into(),
-        //                 offset: 0
-        //             }
-        //         },
-        //         VerifyFailure::Permutation {
-        //             column: (Any::advice(), 10).into(),
-        //             location: FailureLocation::InRegion {
-        //                 region: (5, "Perform range check on balance 1 of user 1").into(),
-        //                 offset: 0
-        //             }
-        //         },
-        //     ])
-        // );
+        assert_eq!(
+            invalid_prover.verify(),
+            Err(vec![
+                VerifyFailure::Permutation {
+                    column: (Any::advice(), 10).into(),
+                    location: FailureLocation::InRegion {
+                        region: (5, "Perform range check on balance 1 of user 1").into(),
+                        offset: 0
+                    }
+                },
+                VerifyFailure::Permutation {
+                    column: (Any::advice(), 10).into(),
+                    location: FailureLocation::InRegion {
+                        region: (9, "Perform range check on balance 1 of user 3").into(),
+                        offset: 0
+                    }
+                },
+            ])
+        );
     }
 
     #[cfg(feature = "dev-graph")]

@@ -170,21 +170,20 @@ where
                     },
                 )?;
 
-                println!("🥲 zs leng: {:?}", zs.len());
-
-                if i == 1 && j == 1 {
-                    println!("user:{}, currency:{}", i, j);
-                    println!("self.instance: {:?}", self.instance);
-                    println!("zs: {:?}", zs[0]);
-                    println!("zs: {:?}", zs[1]);
-                    println!("zs: {:?}", zs[2]);
-                    println!("zs: {:?}", zs[3]);
-                    println!("zs: {:?}", zs[4]);
-                    println!("zs: {:?}", zs[5]);
-                    println!("zs: {:?}", zs[6]);
-                    println!("zs: {:?}", zs[7]);
-                    println!("assigned_balances: {:?}", assigned_balances[i][j])
-                }
+                // Log used when debugging on specific user and currency
+                // if i == 1 && j == 1 {
+                //     println!("user:{}, currency:{}", i, j);
+                //     println!("self.instance: {:?}", self.instance);
+                //     println!("zs: {:?}", zs[0]);
+                //     println!("zs: {:?}", zs[1]);
+                //     println!("zs: {:?}", zs[2]);
+                //     println!("zs: {:?}", zs[3]);
+                //     println!("zs: {:?}", zs[4]);
+                //     println!("zs: {:?}", zs[5]);
+                //     println!("zs: {:?}", zs[6]);
+                //     println!("zs: {:?}", zs[7]);
+                //     println!("assigned_balances: {:?}", assigned_balances[i][j])
+                // }
 
                 layouter.constrain_instance(zs[7].cell(), self.instance, 0)?;
             }
