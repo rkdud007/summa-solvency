@@ -134,6 +134,8 @@ where
             || format!("load range check table of 16 bits"),
             |mut region| {
                 for i in 0..range {
+                    // println!("i: {:?}", i);
+                    // println!("range_u16: {:?}", region);
                     region.assign_fixed(
                         || "assign cell in fixed column",
                         self.range_u16,
@@ -144,11 +146,17 @@ where
                 Ok(())
             },
         )?;
+        println!("assigned balances: {:?}", self.range_u16);
 
         // Perform range check on the assigned balances
         for i in 0..N_USERS {
             for j in 0..N_CURRENCIES {
                 let mut zs = Vec::with_capacity(4);
+                println!("user:{}, currency:{}", i, j);
+                // if zs.len() != 4 {
+                //     println!("user:{}, currency:{}", i, j);
+                //     panic!("zs should have 4 elements not {}", zs.len());
+                // }
 
                 layouter.assign_region(
                     || format!("Perform range check on balance {} of user {}", j, i),
@@ -162,7 +170,23 @@ where
                     },
                 )?;
 
-                layouter.constrain_instance(zs[3].cell(), self.instance, 0)?;
+                println!("🥲 zs leng: {:?}", zs.len());
+
+                if i == 1 && j == 1 {
+                    println!("user:{}, currency:{}", i, j);
+                    println!("self.instance: {:?}", self.instance);
+                    println!("zs: {:?}", zs[0]);
+                    println!("zs: {:?}", zs[1]);
+                    println!("zs: {:?}", zs[2]);
+                    println!("zs: {:?}", zs[3]);
+                    println!("zs: {:?}", zs[4]);
+                    println!("zs: {:?}", zs[5]);
+                    println!("zs: {:?}", zs[6]);
+                    println!("zs: {:?}", zs[7]);
+                    println!("assigned_balances: {:?}", assigned_balances[i][j])
+                }
+
+                layouter.constrain_instance(zs[7].cell(), self.instance, 0)?;
             }
         }
 

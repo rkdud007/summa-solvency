@@ -133,6 +133,8 @@ impl RangeCheckU64Chip {
         zs: &mut Vec<AssignedCell<Fp, Fp>>,
         element: &AssignedCell<Fp, Fp>,
     ) -> Result<(), Error> {
+        println!("config: {:?}", self.config);
+        println!("zs length: {:?}", zs.len());
         // Decompose the element in 4 byte pairs.
         let ks = element
             .value()

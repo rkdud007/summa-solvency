@@ -12,7 +12,7 @@ no_range_check = []
 
 
 [dependencies]
-halo2_proofs = { git = "https://github.com/summa-dev/halo2"}
+halo2_proofs = { path = "../../halo2-fork/halo2_proofs" }
 plotters = { version = "0.3.4", optional = true }
 rand = "0.8"
 ark-std = { version = "0.3.0", features = ["print-trace"] }
@@ -24,14 +24,18 @@ hex = "0.4.3"
 num-bigint = "0.4"
 num_cpus = "1.15"
 itertools = "0.10.3"
-ethers = { version = "2.0.7", default-features = false, features = ["ethers-solc"] }
+ethers = { version = "2.0.7", default-features = false, features = [
+    "ethers-solc",
+] }
 regex-simple = { version = "1", package = "regex" }
 num-traits = "0.2.16"
 rayon = "1.8.0"
-halo2_solidity_verifier = { git = "https://github.com/summa-dev/halo2-solidity-verifier", version = "0.1.0", features = ["evm"] }
+halo2_solidity_verifier = { path = "../../halo2-solidity-verifier", version = "0.1.0", features = [
+    "evm",
+] }
 
 [dev-dependencies]
-criterion= "0.3"
+criterion = "0.3"
 
 [[bench]]
 name = "kzg"
