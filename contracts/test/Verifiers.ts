@@ -124,6 +124,7 @@ describe("Verifier Contracts", () => {
 
       verifyingKey = deploymentInfo.verifyingKey;
 
+        // !! Basically, we test inclusion_proof_solidity_calldata.json file that generated from prover binary, which we modified on this PoC.
       const inclusionJson = fs.readFileSync(
         path.resolve(
           __dirname,

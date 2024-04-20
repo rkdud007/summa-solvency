@@ -158,28 +158,32 @@ fn main() {
     file.write_all(serialized_data.as_bytes())
         .expect("Unable to write data to file");
 
+    let modified_entry: Vec<Entry<20>> = vec![Entry::init_empty(); 20];
+
     // For testing, open user balances and generate a proof for a specific user index
-    let user_index = 1_u16; // Example user index for proof generation
+    // !! In this PoC, we set overflowed user index(18), which is included in row of table
+    // !! Reason why we can sure it is included in table is, we have range check instance column,
+    // !! which is 2^16 number of rows, and we have 16 users that already filled in the table.
+    // !! As user_name column is expected to be random value as we using blind advice colum,
+    // !! As we checked on `commit_lagrange` of PSE forked Halo2 code, Blind factor is not used.
+    // !! That's why we assumed that user_name is not commited in randome, it is zero.
+    let user_index = 18_u16;
     let challenge = omega.pow_vartime([user_index as u64]);
 
-    let user_values = &entries
-        .get(user_index as usize)
-        .map(|entry| {
-            std::iter::once(big_uint_to_fp(entry.username_as_big_uint()))
-                .chain(entry.balances().iter().map(big_uint_to_fp))
-                .collect::<Vec<Fp>>()
-        })
-        .unwrap();
+    let user_values = vec![Fp::zero(); N_CURRENCIES + 1];
+    println!("user_values: {:?}", user_values);
 
     let column_range = 0..N_CURRENCIES + 1;
     let mut inclusion_proof: Vec<Vec<u8>> = Vec::new();
     for column_index in column_range {
         let f_poly = advice_polys.advice_polys.get(column_index).unwrap();
-
+        println!("Polynomial Length: {:?}", f_poly.to_vec().len());
         let z = if column_index == 0 {
-            big_uint_to_fp(entries[user_index as usize].username_as_big_uint())
+            // !! as mentioned above, we assumed that user_name is zero
+            big_uint_to_fp(&BigUint::from(0u32))
         } else {
-            big_uint_to_fp(&entries[user_index as usize].balances()[column_index - 1])
+            // !! Indeed, balance also zero, as it is unblind advice column
+            big_uint_to_fp(&modified_entry[user_index as usize].balances()[column_index - 1])
         };
 
         let kzg_proof = create_naive_kzg_proof::<KZGCommitmentScheme<Bn256>>(
@@ -229,9 +233,10 @@ fn main() {
         U256::from_little_endian(s_g2_affine.y.c0.to_bytes().as_slice()),
     ];
 
+    // !! actually user_id in InclusionProofCallData is not used in the contract at all
     let data = InclusionProofCallData {
         proof: format!("0x{}", hex::encode(inclusion_proof.concat())),
-        user_id: entries[user_index as usize].username().to_string(),
+        user_id: "".to_string(),
         challenges,
         user_values,
     };
